@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Search, BookOpen, Calendar, User } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 const Blogs = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
 
@@ -49,6 +51,10 @@ const Blogs = () => {
     const matchesTag = selectedTag === "All" || blog.tags.includes(selectedTag);
     return matchesSearch && matchesTag;
   });
+
+  const handleBlogClick = (blogId: number) => {
+    navigate(`/blog/${blogId}`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -102,6 +108,7 @@ const Blogs = () => {
             <Card 
               key={blog.id}
               className="bg-slate-800/50 border-slate-700 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 group"
+              onClick={() => handleBlogClick(blog.id)}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-3">
