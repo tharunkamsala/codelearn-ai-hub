@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -58,7 +57,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               language={language}
               PreTag="div"
               className="rounded-t-none rounded-b-lg border border-slate-600 border-t-0"
-              {...props}
             >
               {String(children).replace(/\n$/, '')}
             </SyntaxHighlighter>
