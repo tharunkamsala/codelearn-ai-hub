@@ -54,7 +54,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
               {language.toUpperCase()}
             </div>
             <SyntaxHighlighter
-              style={oneDark}
+              style={oneDark as any}
               language={language}
               PreTag="div"
               className="rounded-t-none rounded-b-lg border border-slate-600 border-t-0"
