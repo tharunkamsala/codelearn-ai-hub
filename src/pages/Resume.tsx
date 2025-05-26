@@ -5,11 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { User, FileText, GraduationCap } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 const Resume = () => {
   const [selectedService, setSelectedService] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -50,10 +55,76 @@ const Resume = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", { service: selectedService, ...formData });
-    // Here you would typically send this data to your backend
-    alert("Request submitted successfully! We'll get back to you within 24 hours.");
+    
+    // Validate required fields
+    if (!formData.name || !formData.email) {
+      toast({
+        title: "Required Fields Missing",
+        description: "Please fill in your name and email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Show confirmation dialog
+    setShowConfirmation(true);
   };
+
+  const handlePaymentRedirect = async () => {
+    setIsProcessingPayment(true);
+    
+    try {
+      // Get the selected service details
+      const service = services.find(s => s.id === selectedService);
+      
+      // Here you would typically call your Stripe edge function
+      // For now, we'll simulate the payment flow
+      
+      toast({
+        title: "Redirecting to Payment",
+        description: `Processing payment for ${service?.title} - ${service?.price}`,
+      });
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real implementation, you would:
+      // 1. Save the form data to your database
+      // 2. Create a Stripe checkout session
+      // 3. Redirect to Stripe checkout
+      
+      // For demo purposes, we'll show a success message
+      toast({
+        title: "Request Submitted Successfully!",
+        description: "You would now be redirected to Stripe for payment. We'll get back to you within 24 hours.",
+      });
+      
+      // Reset form and close dialogs
+      setShowConfirmation(false);
+      setSelectedService("");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        experience: "",
+        skills: "",
+        education: "",
+        targetRole: "",
+        additionalInfo: ""
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const selectedServiceDetails = services.find(s => s.id === selectedService);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
@@ -230,6 +301,47 @@ const Resume = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <AlertDialogContent className="bg-slate-800 border-slate-700 text-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Your Order</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300">
+                You're about to request a <strong>{selectedServiceDetails?.title}</strong> for <strong>{selectedServiceDetails?.price}</strong>.
+                <br /><br />
+                <div className="bg-slate-700/50 p-4 rounded-lg mt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span>Service:</span>
+                    <span className="font-semibold">{selectedServiceDetails?.title}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span>Price:</span>
+                    <span className="font-semibold text-blue-400">{selectedServiceDetails?.price}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Turnaround:</span>
+                    <span className="font-semibold">{selectedServiceDetails?.turnaround}</span>
+                  </div>
+                </div>
+                <br />
+                Do you want to proceed to payment?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-slate-600 text-gray-300 hover:bg-slate-700">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handlePaymentRedirect}
+                disabled={isProcessingPayment}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isProcessingPayment ? "Processing..." : "Proceed to Payment"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
