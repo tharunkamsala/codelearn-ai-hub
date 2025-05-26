@@ -1,13 +1,86 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import { Copy, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { Components } from 'react-markdown';
 
 interface MarkdownRendererProps {
   content: string;
 }
+
+interface CodeBlockProps {
+  children: string;
+  className?: string;
+  language: string;
+}
+
+const CodeBlock: React.FC<CodeBlockProps> = ({ children, className, language }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(children);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy code:', err);
+    }
+  };
+
+  return (
+    <motion.div 
+      className="relative bg-slate-900 rounded-xl overflow-hidden border border-slate-700 my-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Header with language and copy button */}
+      <div className="flex justify-between items-center px-4 py-3 bg-slate-800 border-b border-slate-700">
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          {language || 'CODE'}
+        </span>
+        <motion.button
+          onClick={handleCopy}
+          className="flex items-center space-x-2 text-xs text-slate-400 hover:text-white transition-colors duration-200"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {copied ? (
+            <>
+              <Check className="h-3 w-3" />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-3 w-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </motion.button>
+      </div>
+      
+      {/* Code content */}
+      <div className="overflow-x-auto">
+        <SyntaxHighlighter
+          style={oneDark as any}
+          language={language}
+          PreTag="div"
+          className="!bg-transparent !m-0 text-sm"
+          customStyle={{
+            background: 'transparent',
+            padding: '1rem',
+            margin: 0,
+          }}
+        >
+          {children.replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      </div>
+    </motion.div>
+  );
+};
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   const components: Components = {
@@ -48,24 +121,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
       
       if (isCodeBlock && language) {
         return (
-          <div className="my-6">
-            <div className="bg-slate-700 px-4 py-2 text-sm text-gray-300 rounded-t-lg border-b border-slate-600">
-              {language.toUpperCase()}
-            </div>
-            <SyntaxHighlighter
-              style={oneDark as any}
-              language={language}
-              PreTag="div"
-              className="rounded-t-none rounded-b-lg border border-slate-600 border-t-0"
-            >
-              {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
-          </div>
+          <CodeBlock
+            language={language}
+            className={className}
+          >
+            {String(children)}
+          </CodeBlock>
         );
       }
       
       return (
-        <code className="bg-slate-700 px-2 py-1 rounded text-blue-300 text-sm" {...props}>
+        <code className="bg-slate-700 px-2 py-1 rounded text-blue-300 text-sm font-mono" {...props}>
           {children}
         </code>
       );
